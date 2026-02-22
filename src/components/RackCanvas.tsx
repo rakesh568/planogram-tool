@@ -32,7 +32,7 @@ export function RackCanvas({
   const ref = stageRef ?? internalRef;
 
   const stageWidth = cmToPx(rackConfig.widthCm) + 2 * RACK_PADDING_PX;
-  const stageHeight = cmToPx(rackConfig.totalHeightCm) + 2 * RACK_PADDING_PX;
+  const stageHeight = cmToPx(rackConfig.totalHeightCm) + 2 * RACK_PADDING_PX + 20;
   const rackWidthPx = cmToPx(rackConfig.widthCm);
   const rackHeightPx = cmToPx(rackConfig.totalHeightCm);
 
@@ -69,15 +69,34 @@ export function RackCanvas({
             strokeWidth={2}
           />
 
+          {/* Floor / base of the rack */}
+          <Rect
+            x={RACK_PADDING_PX}
+            y={RACK_PADDING_PX + rackHeightPx}
+            width={rackWidthPx}
+            height={6}
+            fill="#5c4a32"
+          />
+          <Text
+            x={RACK_PADDING_PX + rackWidthPx / 2 - 12}
+            y={RACK_PADDING_PX + rackHeightPx + 8}
+            text="Floor"
+            fontSize={10}
+            fill="#5c4a32"
+            fontStyle="bold"
+          />
+
           {Array.from({ length: rackConfig.numberOfShelves }, (_, i) => {
-            const shelfBottomY = RACK_PADDING_PX + rackHeightPx - (i + 1) * cmToPx(rackConfig.shelfHeightCm);
-            const shelfTopY = shelfBottomY - cmToPx(rackConfig.shelfHeightCm);
+            const shelfHeightPx = cmToPx(rackConfig.shelfHeightCm);
+            const shelfBottomY = RACK_PADDING_PX + rackHeightPx - (i + 1) * shelfHeightPx;
+            const shelfTopY = Math.max(RACK_PADDING_PX, shelfBottomY - shelfHeightPx);
+            const clampedShelfHeight = shelfBottomY - shelfTopY;
             const shelf = shelves[i];
             const remaining = shelf ? getRemainingSpace(shelf, products, rackConfig) : rackConfig.widthCm - 2 * rackConfig.edgeMarginCm;
             const isFlashing = flashingShelf === i;
 
             return (
-                    <Fragment key={`shelf-${i}`}>
+              <Fragment key={`shelf-${i}`}>
                 <Rect
                   x={RACK_PADDING_PX}
                   y={shelfBottomY}
@@ -103,14 +122,14 @@ export function RackCanvas({
                   x={RACK_PADDING_PX}
                   y={shelfTopY}
                   width={cmToPx(rackConfig.edgeMarginCm)}
-                  height={cmToPx(rackConfig.shelfHeightCm)}
+                  height={clampedShelfHeight}
                   fill="rgba(255,150,0,0.15)"
                 />
                 <Rect
                   x={RACK_PADDING_PX + rackWidthPx - cmToPx(rackConfig.edgeMarginCm)}
                   y={shelfTopY}
                   width={cmToPx(rackConfig.edgeMarginCm)}
-                  height={cmToPx(rackConfig.shelfHeightCm)}
+                  height={clampedShelfHeight}
                   fill="rgba(255,150,0,0.15)"
                 />
 
@@ -139,7 +158,7 @@ export function RackCanvas({
                     </Fragment>
                   );
                 })}
-                    </Fragment>
+              </Fragment>
             );
           })}
         </Layer>
