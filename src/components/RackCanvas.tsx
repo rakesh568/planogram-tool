@@ -7,8 +7,7 @@ import { SHELF_THICKNESS_PX, RACK_PADDING_PX } from '../utils/constants';
 import { ProductImage } from './ProductImage';
 import { getRemainingSpace } from '../engine/placementEngine';
 
-// Extra space above the rack so the topmost shelf label has room
-const TOP_LABEL_PADDING_PX = 20;
+
 
 interface RackCanvasProps {
   rackConfig: RackConfig;
@@ -35,16 +34,12 @@ export function RackCanvas({
   const ref = stageRef ?? internalRef;
 
   const stageWidth = cmToPx(rackConfig.widthCm) + 2 * RACK_PADDING_PX;
-  // Extra space: TOP_LABEL_PADDING_PX above rack (topmost shelf label) +
-  //              20px below rack (Floor label)
-  const stageHeight =
-    cmToPx(rackConfig.totalHeightCm) + 2 * RACK_PADDING_PX + TOP_LABEL_PADDING_PX + 20;
+  const stageHeight = cmToPx(rackConfig.totalHeightCm) + 2 * RACK_PADDING_PX;
 
   const rackWidthPx = cmToPx(rackConfig.widthCm);
   const rackHeightPx = cmToPx(rackConfig.totalHeightCm);
 
-  // The rack rectangle starts lower to leave room for the topmost shelf label above it
-  const rackOriginY = RACK_PADDING_PX + TOP_LABEL_PADDING_PX;
+  const rackOriginY = RACK_PADDING_PX;
 
   const productMap = new Map(products.map(p => [p.id, p]));
 
@@ -80,46 +75,21 @@ export function RackCanvas({
             strokeWidth={2}
           />
 
-          {/* Floor / base of the rack */}
-          <Rect
-            x={RACK_PADDING_PX}
-            y={rackOriginY + rackHeightPx}
-            width={rackWidthPx}
-            height={6}
-            fill="#5c4a32"
-          />
-          <Text
-            x={RACK_PADDING_PX + rackWidthPx / 2 - 12}
-            y={rackOriginY + rackHeightPx + 8}
-            text="Floor"
-            fontSize={10}
-            fill="#5c4a32"
-            fontStyle="bold"
-          />
-
           {Array.from({ length: rackConfig.numberOfShelves }, (_, i) => {
             const shelfHeightPx = cmToPx(rackConfig.shelfHeightCm);
-            // Y position of the bottom divider line of this shelf
-            const shelfBottomY = rackOriginY + rackHeightPx - (i + 1) * shelfHeightPx;
-            // Y position of the top of this shelf's content area
+            const shelfBottomY = rackOriginY + rackHeightPx - i * shelfHeightPx;
             const shelfTopY = shelfBottomY - shelfHeightPx;
             const shelf = shelves[i];
             const remaining = shelf
               ? getRemainingSpace(shelf, products, rackConfig)
               : rackConfig.widthCm - 2 * rackConfig.edgeMarginCm;
             const isFlashing = flashingShelf === i;
-            const isTopShelf = i === rackConfig.numberOfShelves - 1;
-
-            // Label renders above the shelf bottom line
-            // For the topmost shelf: label goes into the TOP_LABEL_PADDING_PX area above the rack
-            const labelY = isTopShelf
-              ? RACK_PADDING_PX + 4
-              : shelfTopY + 4;
+            const labelY = shelfTopY + 4;
 
             return (
               <Fragment key={`shelf-${i}`}>
-                {/* Shelf bottom divider line (skip for topmost — rack border serves as ceiling) */}
-                {!isTopShelf && (
+                {/* Shelf bottom divider line (skip for bottom shelf — rack border is floor) */}
+                {i > 0 && (
                   <Rect
                     x={RACK_PADDING_PX}
                     y={shelfBottomY}
