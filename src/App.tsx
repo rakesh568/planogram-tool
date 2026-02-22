@@ -43,39 +43,41 @@ function App() {
   }, []);
 
   return (
-    <div className="flex h-screen bg-gray-100 overflow-hidden">
+    <div className="flex h-screen bg-stone-50 overflow-hidden">
       <ProductCatalog products={sampleProducts} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-200 bg-white flex items-center justify-between flex-shrink-0">
-          <h1 className="text-xl font-bold text-gray-900">Planogram Tool</h1>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <label htmlFor="rack-template-select" className="text-sm text-gray-600 whitespace-nowrap">
-                Rack Template:
-              </label>
-              <select
-                id="rack-template-select"
-                data-testid="rack-template-select"
-                value={selectedTemplateIndex}
-                onChange={handleTemplateChange}
-                className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-400 bg-white"
-              >
-                {rackTemplates.map((t, i) => (
-                  <option key={t.id} value={i}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+        <header className="px-6 py-3 bg-white border-b border-stone-200/60 flex items-center justify-between flex-shrink-0" style={{ boxShadow: 'var(--shadow-xs)' }}>
+          <div className="flex items-center gap-2.5">
+            <div className="w-2 h-2 rounded-full bg-orange-600" />
+            <h1 className="text-base font-semibold text-stone-900 tracking-tight">Planogram</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <label htmlFor="rack-template-select" className="text-xs font-medium text-stone-400 whitespace-nowrap">
+              Template
+            </label>
+            <select
+              id="rack-template-select"
+              data-testid="rack-template-select"
+              value={selectedTemplateIndex}
+              onChange={handleTemplateChange}
+              className="px-2.5 py-1.5 text-[13px] font-medium border border-stone-200 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400 bg-white text-stone-700 transition-all"
+            >
+              {rackTemplates.map((t, i) => (
+                <option key={t.id} value={i}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+            <div className="w-px h-5 bg-stone-200 mx-1" />
             <button
               onClick={handleExportPng}
-              className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors"
+              className="px-3.5 py-1.5 bg-stone-900 hover:bg-stone-800 active:bg-stone-950 text-white text-[13px] font-medium rounded-md transition-colors"
             >
               Export PNG
             </button>
           </div>
-        </div>
+        </header>
 
         <GapConfig
           edgeMarginCm={rackConfig.edgeMarginCm}
@@ -85,15 +87,17 @@ function App() {
         />
 
         <div className="flex-1 overflow-auto p-6">
-          <RackCanvas
-            rackConfig={rackConfig}
-            shelves={shelves}
-            products={sampleProducts}
-            onRemovePlacement={removePlacement}
-            stageRef={stageRef}
-            onDrop={handleDrop}
-            flashingShelf={flashingShelf}
-          />
+          <div className="inline-block bg-white rounded-lg p-5" style={{ boxShadow: 'var(--shadow-sm)' }}>
+            <RackCanvas
+              rackConfig={rackConfig}
+              shelves={shelves}
+              products={sampleProducts}
+              onRemovePlacement={removePlacement}
+              stageRef={stageRef}
+              onDrop={handleDrop}
+              flashingShelf={flashingShelf}
+            />
+          </div>
         </div>
       </div>
     </div>

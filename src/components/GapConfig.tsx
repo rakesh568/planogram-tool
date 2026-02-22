@@ -37,46 +37,54 @@ export function GapConfig({
   };
 
   return (
-    <div className="flex items-center gap-6 px-4 py-2 bg-gray-50 border-t border-gray-200">
-      <h3 className="text-sm font-medium text-gray-700">Gap Settings</h3>
+    <div className="flex items-center gap-5 px-6 py-2 bg-white border-b border-stone-200/60">
+      <h3 className="text-[11px] font-semibold text-stone-400 uppercase tracking-widest mr-1">Gaps</h3>
 
       <div className="flex items-center gap-2">
-        <label htmlFor="edge-margin-input" className="text-xs text-gray-600 whitespace-nowrap">
-          Edge Margin (cm)
+        <label htmlFor="edge-margin-input" className="text-[13px] font-medium text-stone-500 whitespace-nowrap">
+          Edge Margin
         </label>
-        <input
-          id="edge-margin-input"
-          data-testid="edge-margin-input"
-          type="number"
-          min="0"
-          step="0.5"
-          value={edgeMarginCm}
-          onChange={handleEdgeMarginChange}
-          className="w-16 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-400"
-        />
+        <div className="flex items-center gap-1">
+          <input
+            id="edge-margin-input"
+            data-testid="edge-margin-input"
+            type="number"
+            min="0"
+            step="0.5"
+            value={edgeMarginCm}
+            onChange={handleEdgeMarginChange}
+            className="w-16 px-2 py-1 text-[13px] font-medium text-stone-700 border border-stone-200 rounded-md bg-stone-50 focus:bg-white focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all tabular-nums"
+          />
+          <span className="text-[11px] text-stone-400">cm</span>
+        </div>
       </div>
 
+      <div className="w-px h-4 bg-stone-200" />
+
       <div className="flex items-center gap-2">
-        <label htmlFor="gap-input" className="text-xs text-gray-600 whitespace-nowrap">
-          Inter-Product Gap (cm)
+        <label htmlFor="gap-input" className="text-[13px] font-medium text-stone-500 whitespace-nowrap">
+          Product Gap
         </label>
-        <input
-          id="gap-input"
-          data-testid="gap-input"
-          type="number"
-          min="0"
-          step="0.5"
-          value={interProductGapCm}
-          onChange={handleInterProductGapChange}
-          className="w-16 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-400"
-        />
+        <div className="flex items-center gap-1">
+          <input
+            id="gap-input"
+            data-testid="gap-input"
+            type="number"
+            min="0"
+            step="0.5"
+            value={interProductGapCm}
+            onChange={handleInterProductGapChange}
+            className="w-16 px-2 py-1 text-[13px] font-medium text-stone-700 border border-stone-200 rounded-md bg-stone-50 focus:bg-white focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all tabular-nums"
+          />
+          <span className="text-[11px] text-stone-400">cm</span>
+        </div>
       </div>
 
       <button
         onClick={handleResetToDefaults}
-        className="px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded text-gray-700 transition-colors"
+        className="px-3 py-1 text-[11px] font-medium text-stone-400 hover:text-stone-600 border border-stone-200 rounded-md hover:bg-stone-50 transition-colors ml-auto"
       >
-        Reset to Defaults
+        Reset
       </button>
     </div>
   );
