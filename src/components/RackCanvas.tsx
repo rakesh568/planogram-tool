@@ -7,6 +7,9 @@ import { SHELF_THICKNESS_PX, RACK_PADDING_PX } from '../utils/constants';
 import { ProductImage } from './ProductImage';
 import { getRemainingSpace } from '../engine/placementEngine';
 
+// Extra space above the rack so the topmost shelf label has room
+const TOP_LABEL_PADDING_PX = 20;
+
 interface RackCanvasProps {
   rackConfig: RackConfig;
   shelves: Shelf[];
@@ -32,9 +35,16 @@ export function RackCanvas({
   const ref = stageRef ?? internalRef;
 
   const stageWidth = cmToPx(rackConfig.widthCm) + 2 * RACK_PADDING_PX;
-  const stageHeight = cmToPx(rackConfig.totalHeightCm) + 2 * RACK_PADDING_PX + 20;
+  // Extra space: TOP_LABEL_PADDING_PX above rack (topmost shelf label) +
+  //              20px below rack (Floor label)
+  const stageHeight =
+    cmToPx(rackConfig.totalHeightCm) + 2 * RACK_PADDING_PX + TOP_LABEL_PADDING_PX + 20;
+
   const rackWidthPx = cmToPx(rackConfig.widthCm);
   const rackHeightPx = cmToPx(rackConfig.totalHeightCm);
+
+  // The rack rectangle starts lower to leave room for the topmost shelf label above it
+  const rackOriginY = RACK_PADDING_PX + TOP_LABEL_PADDING_PX;
 
   const productMap = new Map(products.map(p => [p.id, p]));
 
@@ -44,7 +54,7 @@ export function RackCanvas({
     ref.current.setPointersPositions(e);
     const pos = ref.current.getPointerPosition();
     if (!pos) return;
-    const relY = pos.y - RACK_PADDING_PX;
+    const relY = pos.y - rackOriginY;
     const shelfHeightPx = cmToPx(rackConfig.shelfHeightCm);
     const shelfIndex = Math.floor((rackHeightPx - relY) / shelfHeightPx);
     const clampedIndex = Math.max(0, Math.min(rackConfig.numberOfShelves - 1, shelfIndex));
@@ -59,9 +69,10 @@ export function RackCanvas({
     >
       <Stage width={stageWidth} height={stageHeight} ref={ref}>
         <Layer>
+          {/* Rack background */}
           <Rect
             x={RACK_PADDING_PX}
-            y={RACK_PADDING_PX}
+            y={rackOriginY}
             width={rackWidthPx}
             height={rackHeightPx}
             fill="#f8f5f0"
@@ -72,14 +83,14 @@ export function RackCanvas({
           {/* Floor / base of the rack */}
           <Rect
             x={RACK_PADDING_PX}
-            y={RACK_PADDING_PX + rackHeightPx}
+            y={rackOriginY + rackHeightPx}
             width={rackWidthPx}
             height={6}
             fill="#5c4a32"
           />
           <Text
             x={RACK_PADDING_PX + rackWidthPx / 2 - 12}
-            y={RACK_PADDING_PX + rackHeightPx + 8}
+            y={rackOriginY + rackHeightPx + 8}
             text="Floor"
             fontSize={10}
             fill="#5c4a32"
@@ -88,50 +99,78 @@ export function RackCanvas({
 
           {Array.from({ length: rackConfig.numberOfShelves }, (_, i) => {
             const shelfHeightPx = cmToPx(rackConfig.shelfHeightCm);
-            const shelfBottomY = RACK_PADDING_PX + rackHeightPx - (i + 1) * shelfHeightPx;
-            const shelfTopY = Math.max(RACK_PADDING_PX, shelfBottomY - shelfHeightPx);
-            const clampedShelfHeight = shelfBottomY - shelfTopY;
+            // Y position of the bottom divider line of this shelf
+            const shelfBottomY = rackOriginY + rackHeightPx - (i + 1) * shelfHeightPx;
+            // Y position of the top of this shelf's content area
+            const shelfTopY = shelfBottomY - shelfHeightPx;
             const shelf = shelves[i];
-            const remaining = shelf ? getRemainingSpace(shelf, products, rackConfig) : rackConfig.widthCm - 2 * rackConfig.edgeMarginCm;
+            const remaining = shelf
+              ? getRemainingSpace(shelf, products, rackConfig)
+              : rackConfig.widthCm - 2 * rackConfig.edgeMarginCm;
             const isFlashing = flashingShelf === i;
+            const isTopShelf = i === rackConfig.numberOfShelves - 1;
+
+            // Label renders above the shelf bottom line
+            // For the topmost shelf: label goes into the TOP_LABEL_PADDING_PX area above the rack
+            const labelY = isTopShelf
+              ? RACK_PADDING_PX + 4
+              : shelfTopY + 4;
 
             return (
               <Fragment key={`shelf-${i}`}>
-                <Rect
-                  x={RACK_PADDING_PX}
-                  y={shelfBottomY}
-                  width={rackWidthPx}
-                  height={SHELF_THICKNESS_PX}
-                  fill={isFlashing ? '#ff4444' : '#8b7355'}
-                />
+                {/* Shelf bottom divider line (skip for topmost — rack border serves as ceiling) */}
+                {!isTopShelf && (
+                  <Rect
+                    x={RACK_PADDING_PX}
+                    y={shelfBottomY}
+                    width={rackWidthPx}
+                    height={SHELF_THICKNESS_PX}
+                    fill={isFlashing ? '#ff4444' : '#8b7355'}
+                  />
+                )}
+                {/* Shelf label */}
                 <Text
                   x={RACK_PADDING_PX + 4}
-                  y={shelfTopY + 4}
+                  y={labelY}
                   text={`Shelf ${i + 1}`}
                   fontSize={10}
                   fill="#8b7355"
                 />
+                {/* Remaining space indicator */}
                 <Text
                   x={RACK_PADDING_PX + rackWidthPx - 80}
-                  y={shelfTopY + 4}
+                  y={labelY}
                   text={`${remaining.toFixed(1)}cm free`}
                   fontSize={10}
                   fill={remaining <= 0 ? '#cc3300' : '#2d6a2d'}
                 />
+                {/* Left edge margin highlight */}
                 <Rect
                   x={RACK_PADDING_PX}
                   y={shelfTopY}
                   width={cmToPx(rackConfig.edgeMarginCm)}
-                  height={clampedShelfHeight}
+                  height={shelfHeightPx}
                   fill="rgba(255,150,0,0.15)"
                 />
+                {/* Right edge margin highlight */}
                 <Rect
                   x={RACK_PADDING_PX + rackWidthPx - cmToPx(rackConfig.edgeMarginCm)}
                   y={shelfTopY}
                   width={cmToPx(rackConfig.edgeMarginCm)}
-                  height={clampedShelfHeight}
+                  height={shelfHeightPx}
                   fill="rgba(255,150,0,0.15)"
                 />
+
+                {/* Flashing overlay for invalid placement */}
+                {isFlashing && (
+                  <Rect
+                    x={RACK_PADDING_PX}
+                    y={shelfTopY}
+                    width={rackWidthPx}
+                    height={shelfHeightPx}
+                    fill="rgba(255,68,68,0.15)"
+                  />
+                )}
 
                 {shelf?.placements.map(placement => {
                   const product = productMap.get(placement.productId);
